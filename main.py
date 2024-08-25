@@ -1,4 +1,5 @@
-# print("Importing libraries...")
+import time
+start_time = time.time()
 
 import torch
 import h5py
@@ -12,16 +13,20 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 knn = KNN(k=3, metric="mahalanobis", device=device)
 
 for i in range(10):
-    # print(f"{i} Loading data...")
-    X_train, y_train, X_test, y_test = load_cifar_data(state=i)
 
-    # print(f"{i} Training...")
+    X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=i)
+
     knn.fit(X_train, y_train)
+    # knn.replace_examples_with_mean()
+    # knn.covMatrices = covariances.float().to(device)
 
-    # print(f"{i} Predicting...")
     predictions = knn.predict(X_test)
 
-    # print(f"{i} Calculating accuracy...")
     accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())/X_test.shape[0]
-    print(f"KNN mahalanobis: {round(accuracy.item(),4)}")
+    print(f"KNN mahalanobis: {accuracy.item()}")
 
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+
+print(f"Elapsed time: {elapsed_time} seconds")

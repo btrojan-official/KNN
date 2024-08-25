@@ -48,4 +48,4 @@ def load_cifar_data(state=0):
 
         print(f"Accuracy: {accuracy}, Task ID: {task_id}")
 
-        return torch.tensor(X_train), torch.tensor(y_train), torch.tensor(X_test), torch.tensor(y_test)
+        return torch.tensor(X_train), torch.tensor(y_train), torch.tensor(X_test), torch.tensor(y_test), torch.tensor(covariances)

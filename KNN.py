@@ -52,9 +52,12 @@ class KNN:
         elif self.metric == "mahalanobis":
             distances = self._mahalanobis(X_test)
 
-        _, knn_indices = torch.topk(distances, self.k, largest=False, dim=1)
+        _, knn_indices = torch.topk(distances, self.k, largest=False, dim=1, sorted=True)
 
         nearest_neighbours_matrix = self.y_train[knn_indices].squeeze()
+
+        if self.k == 1:
+            return nearest_neighbours_matrix
 
         if len(nearest_neighbours_matrix.size()) < 2:
             nearest_neighbours_matrix = nearest_neighbours_matrix.unsqueeze(0)
@@ -120,10 +123,15 @@ class KNN:
         uniqes = torch.unique(y_train, sorted=True).to(self.device)
 
         for i in uniqes:
+            cov = self._calc_single_covariance(X_train, y_train, i)
+
+            cov = self.matrix_shrinkage(cov, 1, 1)
+            cov = self.normalize_covariance_matrix(cov)
+
             if i == uniqes[0]:
-                covariances = self._calc_single_covariance(X_train, y_train, i)
+                covariances = cov
             else:
-                covariances = torch.cat((covariances, self._calc_single_covariance(X_train, y_train, i)))
+                covariances = torch.cat((covariances, cov))
         
         return covariances
 
@@ -156,3 +164,32 @@ class KNN:
         shrinkaged_cov_matrix = cov_matrix + gamma1 * V1 * I + gamma2 * V2 * (1 - I)
 
         return shrinkaged_cov_matrix.to(self.device)
+    
+    def normalize_covariance_matrix(self, cov_matrix):
+
+        diag_elements = torch.sqrt(torch.diag(cov_matrix))
+        
+        outer_diag = torch.outer(diag_elements, diag_elements)
+
+        normalized_cov_matrix = cov_matrix / outer_diag
+        
+        return normalized_cov_matrix
+    
+    def replace_examples_with_mean(self):
+
+        self.k = 1
+
+        means = []
+        labels = []
+
+        for i in torch.unique(self.y_train, sorted=True):
+
+            single_class_examples = self._get_single_class_examples(self.X_train, self.y_train, i)
+            mean = torch.mean(single_class_examples, dim=0).unsqueeze(0)
+
+            means.append(mean)
+            labels.append(i)
+
+        self.X_train = torch.cat(means).to(self.device)
+        self.y_train = torch.tensor(labels).to(self.device)
+
