@@ -23,7 +23,7 @@ for i in range(10):
     predictions = knn.predict(X_test)
 
     accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())/X_test.shape[0]
-    print(f"KNN mahalanobis: {accuracy.item()}")
+    print(f"Accuracy: {accuracy.item()*100} MY")
 
 
 end_time = time.time()

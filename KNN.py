@@ -148,7 +148,7 @@ class KNN:
         mean = torch.mean(single_class_examples, dim=0).to(self.device)
         centered_data = single_class_examples - mean
 
-        return self.matrix_shrinkage(torch.mm(centered_data.t(),centered_data) / (single_class_examples.shape[0] - 1)).to(self.device)
+        return (torch.mm(centered_data.t(),centered_data) / (single_class_examples.shape[0] - 1)).to(self.device)
     
     def matrix_shrinkage(self, cov_matrix, gamma1=1, gamma2=1):
 
