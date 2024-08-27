@@ -22,8 +22,16 @@ for i in range(10):
 
     predictions = knn.predict(X_test)
 
-    accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())/X_test.shape[0]
-    print(f"Accuracy: {accuracy.item()*100} MY")
+    accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())
+    print(f"Accuracy: {accuracy.item()} MY")
+
+
+# X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=9)
+
+# predictions = knn.predict(X_test)
+
+# accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())
+# print(f"Accuracy: {accuracy.item()} MY")
 
 
 end_time = time.time()

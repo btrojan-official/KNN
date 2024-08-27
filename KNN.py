@@ -68,9 +68,20 @@ class KNN:
 
         counts = torch.zeros(batch_size, number_of_classes, dtype=torch.int).to(self.device)
 
-        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=torch.ones_like(nearest_neighbours_matrix, dtype=torch.int))
+        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=torch.ones_like(nearest_neighbours_matrix, dtype=torch.int))            
 
         most_frequent = torch.argmax(counts, dim=1)
+
+        def is_draw(tensor):
+            sorted_tensor, _ = tensor.sort(dim=0, descending=True)
+
+            max_values = sorted_tensor[0]
+            second_max_values = sorted_tensor[1]
+            return max_values == second_max_values
+
+        for i,line in enumerate(counts):
+            if is_draw(line):
+                most_frequent[i] = nearest_neighbours_matrix[i][0]
 
         return most_frequent
     
