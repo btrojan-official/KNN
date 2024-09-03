@@ -30,7 +30,7 @@ def load_mnist_data():
 
     tensor_train_imgs = torch.stack(flattened_images)
     tensor_train_labels = torch.tensor(labels).unsqueeze(1)
-
+ 
     return tensor_train_imgs, tensor_train_labels, tensor_test_imgs, tensor_test_labels
 
 def load_cifar_data(state=0):

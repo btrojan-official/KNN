@@ -17,20 +17,22 @@ for i in range(10):
     X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=i)
 
     knn.fit(X_train, y_train)
-    # knn.replace_examples_with_mean()
+    knn.replace_examples_with_mean()
     # knn.covMatrices = covariances.float().to(device)
 
     predictions = knn.predict(X_test)
 
-    accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())
+    accuracy = torch.sum((y_test.flatten().to(device)==predictions).int()).double()  / X_test.shape[0]
     print(f"Accuracy: {accuracy.item()} MY")
 
 
 # X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=9)
 
+# knn.covMatrices = covariances.float().to(device)
+
 # predictions = knn.predict(X_test)
 
-# accuracy = torch.sum((y_test.flatten().to(device)==predictions).int())
+# accuracy = torch.sum((y_test.flatten().to(device)==predictions).int()).double()  / X_test.shape[0]
 # print(f"Accuracy: {accuracy.item()} MY")
 
 
