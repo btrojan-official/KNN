@@ -10,10 +10,10 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 print("Loading data...")
 X_train, y_train, X_test, y_test = load_mnist_data()
 
-knn = KNN(k=10, metric="mahalanobis", weight="distance", device=device)
+knn = KNN(k=10, metric="mahalanobis", weight="uniform", device=device)
 
-train_examples = 6000
-test_examples = 10000
+train_examples = 600
+test_examples = 1000
 
 print("Training...")
 # print("!!!Replacing examples with mean...")

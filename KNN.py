@@ -79,12 +79,12 @@ class KNN:
         elif self.weight == "distance": weights_matrix = 1 / torch.gather(distances, 1, knn_indices).to(self.device)
         else: raise ValueError(f"Weight should be one of {self.weights}")
 
-        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=(weights_matrix*(-1)))            
+        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=(weights_matrix))            
 
-        most_frequent = torch.argmin(counts, dim=1)
+        most_frequent = torch.argmax(counts, dim=1)
 
         def is_draw(tensor):
-            sorted_tensor, _ = tensor.sort(dim=0, descending=False)
+            sorted_tensor, _ = tensor.sort(dim=0, descending=True)
 
             max_values = sorted_tensor[0]
             second_max_values = sorted_tensor[1]

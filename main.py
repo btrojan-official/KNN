@@ -10,9 +10,9 @@ from load_data import load_cifar_data
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-knn = KNN(k=5, metric="mahalanobis", weight="distances", device=device)
+knn = KNN(k=20, metric="mahalanobis", weight="uniform", device=device)
 
-for i in range(10):
+for i in range(1):
 
     X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=i)
 
@@ -26,7 +26,7 @@ for i in range(10):
     # print(f"Accuracy: {accuracy.item()} MY")
 
 
-X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=9)
+X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=0)
 
 knn.covMatrices = covariances.float().to(device)
 
