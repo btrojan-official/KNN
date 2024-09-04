@@ -1,15 +1,22 @@
 import torch
 
 class KNN:
-    def __init__(self, k=3, metric="euclidean", device=torch.device("cpu")):
+    def __init__(self, k=3, metric="euclidean", weight="uniform", device=torch.device("cpu")):
 
         self.metrices = ["euclidean", "mahalanobis"]
+        self.weights = ["uniform", "distance"]
 
         self.k = k
         if metric in self.metrices:
             self.metric = metric
         else:
             raise ValueError(f"Metric should be one of {self.metrices}")
+        
+        if weight in self.weights:
+            self.weight = weight
+        else:
+            raise ValueError(f"Weight should be one of {self.weights}")
+
         self.device = device
         
         self.X_train = None
@@ -66,14 +73,18 @@ class KNN:
 
         number_of_classes = torch.max(self.y_train) + 1
 
-        counts = torch.zeros(batch_size, number_of_classes, dtype=torch.int).to(self.device)
+        counts = torch.zeros(batch_size, number_of_classes, dtype=torch.float).to(self.device)
 
-        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=torch.ones_like(nearest_neighbours_matrix, dtype=torch.int))            
+        if self.weight == "uniform": weights_matrix = torch.ones_like(nearest_neighbours_matrix, dtype=torch.float).to(self.device)
+        elif self.weight == "distance": weights_matrix = 1 / torch.gather(distances, 1, knn_indices).to(self.device)
+        else: raise ValueError(f"Weight should be one of {self.weights}")
 
-        most_frequent = torch.argmax(counts, dim=1)
+        counts.scatter_add_(dim=1, index=nearest_neighbours_matrix, src=(weights_matrix*(-1)))            
+
+        most_frequent = torch.argmin(counts, dim=1)
 
         def is_draw(tensor):
-            sorted_tensor, _ = tensor.sort(dim=0, descending=True)
+            sorted_tensor, _ = tensor.sort(dim=0, descending=False)
 
             max_values = sorted_tensor[0]
             second_max_values = sorted_tensor[1]

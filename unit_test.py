@@ -1,7 +1,6 @@
 print("Importing libraries...")
 import torch
 
-
 from KNN import KNN 
 from load_data import load_mnist_data
 
@@ -11,8 +10,8 @@ print("Loading data...")
 X_train = torch.tensor([[1,2],[2,3],[3,5]])
 y_train = torch.tensor([[0],[0],[0]])
 
-X_test = torch.tensor([[2,4],[2,4]])
-y_test = torch.tensor([[2]])
+X_test = torch.tensor([[2,4]])
+y_test = torch.tensor([[0]])
 
 knn = KNN(k=1, metric="mahalanobis", device=device)
 

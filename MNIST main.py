@@ -10,19 +10,15 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 print("Loading data...")
 X_train, y_train, X_test, y_test = load_mnist_data()
 
-print(f"X_train shape: {X_train.shape}")
-print(f"y_train shape: {y_train.shape}")
-print(f"X_test shape: {X_test.shape}")
-print(f"y_test shape: {y_test.shape}")
+knn = KNN(k=10, metric="mahalanobis", weight="distance", device=device)
 
-
-knn = KNN(k=3, metric="euclidean", device=device)
-
-train_examples = 12000
-test_examples = 1000
+train_examples = 6000
+test_examples = 10000
 
 print("Training...")
-knn.fit(X_train[:train_examples], y_train[:train_examples])
+# print("!!!Replacing examples with mean...")
+knn.fit(X_train[:train_examples], y_train[:train_examples]) 
+# knn.replace_examples_with_mean()
 
 print("Predicting...")
 predictions = knn.predict(X_test[:test_examples])
