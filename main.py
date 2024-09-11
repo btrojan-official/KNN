@@ -12,7 +12,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 knn = KNN(k=20, metric="mahalanobis", weight="uniform", device=device)
 
-for i in range(1):
+for i in range(10):
 
     X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=i)
 
@@ -26,7 +26,7 @@ for i in range(1):
     # print(f"Accuracy: {accuracy.item()} MY")
 
 
-X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=0)
+X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=9)
 
 knn.covMatrices = covariances.float().to(device)
 

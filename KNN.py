@@ -22,6 +22,9 @@ class KNN:
         self.X_train = None
         self.y_train = None
 
+        self.l1 = 1
+        self.l2 = 1
+
         self.covMatrices = None
 
     def to(self, device):
@@ -119,24 +122,31 @@ class KNN:
 
         return dists
 
-    def _mahalanobis(self, X_test):
+    def _mahalanobis(self, X_test, batch_size=32):
         X_test = X_test.to(self.device)
+
+        f_num = self.covMatrices.shape[1]
+        num_classes = self.covMatrices.shape[0] // f_num
+
+        cov_inv_list = []
+        for i in range(num_classes):  
+            cov_inv = torch.inverse(self.covMatrices[i * f_num:(i + 1) * f_num, :]).to(self.device)
+            cov_inv_list.append(cov_inv)
+        cov_inv_stack = torch.stack(cov_inv_list)
 
         mahalanobis_distances = []
 
-        for i,train_point in enumerate(self.X_train):
-            f_num = self.covMatrices.shape[1]
+        for start_idx in range(0, self.X_train.shape[0], batch_size):
+            end_idx = min(start_idx + batch_size, self.X_train.shape[0])
+            X_train_batch = self.X_train[start_idx:end_idx].to(self.device)
+            cov_inv_per_batch = cov_inv_stack[self.y_train[start_idx:end_idx]]
+            X_test_exp = X_test.unsqueeze(0).repeat(end_idx - start_idx, 1, 1)
+            diff = (X_train_batch.unsqueeze(1) - X_test_exp)
+            batch_distances = torch.sqrt(torch.sum(diff @ cov_inv_per_batch * diff, dim=2))
+            mahalanobis_distances.append(batch_distances)
 
-            cov_inv = torch.inverse(self.covMatrices[self.y_train[i]*f_num:self.y_train[i]*f_num + f_num, :]).to(self.device)
+        return torch.cat(mahalanobis_distances, dim=0).T.to(self.device)
 
-            diff = (train_point - X_test).to(self.device)  # Broadcasting to compute difference with all training points
-            
-            mahalanobis_distance = torch.sqrt(torch.sum(diff @ cov_inv * diff, dim=1))
-            mahalanobis_distances.append(mahalanobis_distance)
-
-            # if (i+1) % 1000 == 0: print(f"{i+1} / {self.X_train.shape[0]}")
-
-        return torch.stack(mahalanobis_distances).T.to(self.device)
 
     def _calc_covariances(self, X_train, y_train):
         X_train = X_train.float().to(self.device)
@@ -147,7 +157,7 @@ class KNN:
         for i in uniqes:
             cov = self._calc_single_covariance(X_train, y_train, i)
 
-            cov = self.matrix_shrinkage(cov, 1, 1)
+            cov = self.matrix_shrinkage(cov, self.l1, self.l2)
             cov = self.normalize_covariance_matrix(cov)
 
             if i == uniqes[0]:
