@@ -25,6 +25,10 @@ class KNN:
         self.l1 = 1
         self.l2 = 1
 
+        self.lambda_hyperparameter = 0.5
+
+        self.apply_tukeys_transformation = False
+
         self.covMatrices = None
 
     def to(self, device):
@@ -35,6 +39,8 @@ class KNN:
             self.y_train = self.y_train.to(device)
 
     def fit(self, X_train, y_train):
+        if self.apply_tukeys_transformation:
+            X_train = self._tukeys_transformation(X_train)
 
         if self.X_train is None or self.y_train is None:
             self.X_train = X_train.float().to(self.device)
@@ -51,7 +57,12 @@ class KNN:
 
     
     def predict(self, X_test):
+        print(F"PARAMS: k={self.k}, l1={self.l1}, l2={self.l2}, metric={self.metric}, weight={self.weight}, tuckeys={self.apply_tukeys_transformation}, lambda={self.lambda_hyperparameter}")
+
         X_test = X_test.float().to(self.device)
+
+        if self.apply_tukeys_transformation:
+            X_test = self._tukeys_transformation(X_test)
 
         return self._predict(X_test)
     
@@ -157,7 +168,7 @@ class KNN:
         for i in uniqes:
             cov = self._calc_single_covariance(X_train, y_train, i)
 
-            cov = self.matrix_shrinkage(cov, self.l1, self.l2)
+            cov = self.matrix_shrinkage(cov, self.l1, self.l2)#self.matrix_shrinkage(, 1, 0)
             cov = self.normalize_covariance_matrix(cov)
 
             if i == uniqes[0]:
@@ -206,6 +217,12 @@ class KNN:
         normalized_cov_matrix = cov_matrix / outer_diag
         
         return normalized_cov_matrix
+    
+    def _tukeys_transformation(self, x: torch.Tensor) -> torch.Tensor:
+        if self.lambda_hyperparameter != 0:
+            return x**self.lambda_hyperparameter
+        else:
+            return torch.log(x)
     
     def replace_examples_with_mean(self):
 

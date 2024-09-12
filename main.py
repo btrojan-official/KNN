@@ -6,18 +6,25 @@ import h5py
 
 from KNN import KNN 
 from load_data import load_mnist_data
-from load_data import load_cifar_data
+from load_data import load_vit_data
+from load_data import load_resnet_data
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+print(f"DEVICE = {device}")
 
-knn = KNN(k=20, metric="mahalanobis", weight="uniform", device=device)
+knn = KNN(k=3, metric="mahalanobis", weight="uniform", device=device)
+knn.apply_tukeys_transformation = True
 
-for i in range(10):
 
-    X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=i)
+for i in range(6):
+
+    X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=i)
 
     knn.fit(X_train, y_train)
-    # knn.replace_examples_with_mean()
+    knn.replace_examples_with_mean()
+
+    # if len(covariances.size()) > 2:
+    #     covariances = covariances.reshape(-1, covariances.shape[1])
     # knn.covMatrices = covariances.float().to(device)
 
     # predictions = knn.predict(X_test)
@@ -26,9 +33,9 @@ for i in range(10):
     # print(f"Accuracy: {accuracy.item()} MY")
 
 
-X_train, y_train, X_test, y_test, covariances = load_cifar_data(state=9)
+X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=5)
 
-knn.covMatrices = covariances.float().to(device)
+# knn.covMatrices = covariances.float().to(device)
 
 predictions = knn.predict(X_test)
 

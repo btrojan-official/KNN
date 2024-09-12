@@ -33,7 +33,7 @@ def load_mnist_data():
  
     return tensor_train_imgs, tensor_train_labels, tensor_test_imgs, tensor_test_labels
 
-def load_cifar_data(state=0):
+def load_vit_data(state=0):
     current_file = f"./ViT_pretrained_CIFAR_100/task_{state}.hdf5"
 
     with h5py.File(current_file, "r") as f:
@@ -47,5 +47,22 @@ def load_cifar_data(state=0):
         accuracy = f["info"].attrs["accuracy"]
 
         # print(f"Accuracy: {accuracy}, Task ID: {task_id}")
+
+        return torch.tensor(X_train), torch.tensor(y_train), torch.tensor(X_test), torch.tensor(y_test), torch.tensor(covariances)
+
+def load_resnet_data(state=0):
+    current_file = f"./CIFAR_100_incremental_T_5_table_1/task_{state}.hdf5"
+
+    with h5py.File(current_file, "r") as f:
+        X_train = f["X_train"][:]
+        y_train = f["y_train"][:]
+        covariances = f["covariances"][:]
+        X_test = f["X_test"][:]
+        y_test = f["y_test"][:]
+        test_predictions = f["test_predictions"][:]
+        task_id = f["info"].attrs["task"]
+        accuracy = f["info"].attrs["accuracy"]
+
+        print(f"Accuracy: {accuracy}, Task ID: {task_id}")
 
         return torch.tensor(X_train), torch.tensor(y_train), torch.tensor(X_test), torch.tensor(y_test), torch.tensor(covariances)

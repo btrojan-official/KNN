@@ -1,0 +1,38 @@
+w = uniform, k = 1, l1 = 1, l2 = 1, accuracy = 90.75
+w = uniform, k = 3, l1 = 1, l2 = 1, accuracy = 90.67500000000001
+w = uniform, k = 5, l1 = 1, l2 = 1, accuracy = 90.4
+w = uniform, k = 10, l1 = 1, l2 = 1, accuracy = 90.225
+w = uniform, k = 20, l1 = 1, l2 = 1, accuracy = 90.17500000000001
+w = uniform, k = 50, l1 = 1, l2 = 1, accuracy = 89.825
+w = uniform, k = 100, l1 = 1, l2 = 1, accuracy = 89.60000000000001
+
+w = uniform, k = 3, l1 = 0.5, l2 = 0.5, accuracy = 90.4
+w = uniform, k = 3, l1 = 1, l2 = 1, accuracy = 90.67500000000001
+w = uniform, k = 3, l1 = 2, l2 = 2, accuracy = 90.60000000000001
+w = uniform, k = 3, l1 = 5, l2 = 5, accuracy = 90.47500000000001
+w = uniform, k = 3, l1 = 10, l2 = 10, accuracy = 90.2
+w = uniform, k = 3, l1 = 50, l2 = 50, accuracy = 90.4
+w = uniform, k = 3, l1 = 100, l2 = 100, accuracy = 90.2
+w = uniform, k = 3, l1 = 150, l2 = 150, accuracy = 90.275
+w = uniform, k = 3, l1 = 300, l2 = 300, accuracy = 90.3
+w = uniform, k = 3, l1 = 500, l2 = 500, accuracy = 90.275
+
+w = distance, k = 1, l1 = 1, l2 = 1, accuracy = 90.75
+w = distance, k = 3, l1 = 1, l2 = 1, accuracy = 90.67500000000001
+w = distance, k = 5, l1 = 1, l2 = 1, accuracy = 90.4
+w = distance, k = 10, l1 = 1, l2 = 1, accuracy = 90.225
+w = distance, k = 20, l1 = 1, l2 = 1, accuracy = 90.10000000000001
+w = distance, k = 50, l1 = 1, l2 = 1, accuracy = 89.875
+w = distance, k = 100, l1 = 1, l2 = 1, accuracy = 89.575
+
+w = distance, k = 3, l1 = 0.5, l2 = 0.5, accuracy = 90.4
+w = distance, k = 3, l1 = 1, l2 = 1, accuracy = 90.67500000000001
+w = distance, k = 3, l1 = 2, l2 = 2, accuracy = 90.60000000000001
+w = distance, k = 3, l1 = 5, l2 = 5, accuracy = 90.5
+w = distance, k = 3, l1 = 10, l2 = 10, accuracy = 90.225
+w = distance, k = 3, l1 = 50, l2 = 50, accuracy = 90.425
+w = distance, k = 3, l1 = 100, l2 = 100, accuracy = 90.225
+w = distance, k = 3, l1 = 150, l2 = 150, accuracy = 90.3
+w = distance, k = 3, l1 = 300, l2 = 300, accuracy = 90.325
+w = distance, k = 3, l1 = 500, l2 = 500, accuracy = 90.3
+
