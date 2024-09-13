@@ -39,7 +39,7 @@ class KNN:
             self.y_train = self.y_train.to(device)
 
     def fit(self, X_train, y_train):
-        if self.apply_tukeys_transformation:
+        if self.apply_tukeys_transformation or True:
             X_train = self._tukeys_transformation(X_train)
 
         if self.X_train is None or self.y_train is None:
@@ -57,7 +57,7 @@ class KNN:
 
     
     def predict(self, X_test):
-        print(F"PARAMS: k={self.k}, l1={self.l1}, l2={self.l2}, metric={self.metric}, weight={self.weight}, tuckeys={self.apply_tukeys_transformation}, lambda={self.lambda_hyperparameter}")
+        # print(F"PARAMS: k={self.k}, l1={self.l1}, l2={self.l2}, metric={self.metric}, weight={self.weight}, tuckeys={self.apply_tukeys_transformation}, lambda={self.lambda_hyperparameter}")
 
         X_test = X_test.float().to(self.device)
 
@@ -133,7 +133,7 @@ class KNN:
 
         return dists
 
-    def _mahalanobis(self, X_test, batch_size=32):
+    def _mahalanobis(self, X_test, batch_size=16):
         X_test = X_test.to(self.device)
 
         f_num = self.covMatrices.shape[1]
@@ -188,10 +188,11 @@ class KNN:
     def _calc_single_covariance(self, X_train, y_train, class_number):
         single_class_examples = self._get_single_class_examples(X_train, y_train, class_number)
         
-        mean = torch.mean(single_class_examples, dim=0).to(self.device)
-        centered_data = single_class_examples - mean
+        # mean = torch.mean(single_class_examples, dim=0).to(self.device)
+        # centered_data = single_class_examples - mean
 
-        return (torch.mm(centered_data.t(),centered_data) / (single_class_examples.shape[0] - 1)).to(self.device)
+        # return (torch.mm(centered_data.t(),centered_data) / (single_class_examples.shape[0] - 1)).to(self.device)
+        return torch.cov(single_class_examples.T).to(self.device)
     
     def matrix_shrinkage(self, cov_matrix, gamma1=1, gamma2=1):
 
