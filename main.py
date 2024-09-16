@@ -19,18 +19,17 @@ knn.apply_tukeys_transformation = False
 
 mse = nn.MSELoss()
 
-for i in range(6):
+for i in range(10):
 
-    X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=i)
+    X_train, y_train, X_test, y_test, covariances = load_vit_data(state=i)
 
     knn.fit(X_train, y_train)
     knn.replace_examples_with_mean()
 
-    if len(covariances.size()) > 2:
-        covariances = covariances.reshape(-1, covariances.shape[1])
+    # if len(covariances.size()) > 2:
+    #     covariances = covariances.reshape(-1, covariances.shape[1])
     # knn.covMatrices = covariances.float().to(device)
     
-
     predictions = knn.predict(X_test)
 
     accuracy = torch.sum((y_test.flatten().to(device)==predictions).int()).float() / X_test.shape[0] * 100

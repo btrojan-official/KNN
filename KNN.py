@@ -23,7 +23,7 @@ class KNN:
         self.y_train = None
 
         self.l1 = 1
-        self.l2 = 1
+        self.l2 = 0
 
         self.lambda_hyperparameter = 0.5
 
@@ -39,7 +39,7 @@ class KNN:
             self.y_train = self.y_train.to(device)
 
     def fit(self, X_train, y_train):
-        if self.apply_tukeys_transformation or True:
+        if self.apply_tukeys_transformation:
             X_train = self._tukeys_transformation(X_train)
 
         if self.X_train is None or self.y_train is None:
