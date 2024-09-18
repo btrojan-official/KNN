@@ -1,4 +1,5 @@
 import torch
+from sklearn.cluster import KMeans
 
 class KNN:
     def __init__(self, k=3, metric="euclidean", weight="uniform", device=torch.device("cpu")):
@@ -29,6 +30,8 @@ class KNN:
 
         self.apply_tukeys_transformation = False
 
+        self.kmeans = 0
+
         self.covMatrices = None
 
     def to(self, device):
@@ -43,18 +46,33 @@ class KNN:
             X_train = self._tukeys_transformation(X_train)
 
         if self.X_train is None or self.y_train is None:
-            self.X_train = X_train.float().to(self.device)
-            self.y_train = y_train.to(self.device)
-
             if self.metric == "mahalanobis":
                 self.covMatrices = self._calc_covariances(X_train, y_train)
         else:
-            self.X_train = torch.cat((self.X_train, X_train.float().to(self.device)))
-            self.y_train = torch.cat((self.y_train, y_train.to(self.device)))
-
             if self.metric == "mahalanobis":
                 self.covMatrices = torch.cat((self.covMatrices, self._calc_covariances(X_train, y_train))).to(self.device)
+        
+        if self.kmeans > 0:
+            uniqes = torch.unique(y_train, sorted=True).to(self.device)
 
+            for i in uniqes:
+                single_class_examples = self._get_single_class_examples(X_train.float().to(self.device), y_train.float().to(self.device), i)
+                if i == torch.min(uniqes): 
+                    new_X_train = self._kmeans(single_class_examples).to(self.device)
+                    new_y_train = torch.full((self.kmeans,), i.item()).to(self.device)
+                else:
+                    new_X_train = torch.cat((new_X_train, self._kmeans(single_class_examples).to(self.device)))
+                    new_y_train = torch.cat((new_y_train, torch.full((self.kmeans,), i.item()).to(self.device)))
+
+            X_train = new_X_train
+            y_train = new_y_train
+
+        if self.X_train is None or self.y_train is None:
+            self.X_train = X_train.float().to(self.device)
+            self.y_train = y_train.to(self.device)
+        else:
+            self.X_train = torch.cat((self.X_train, X_train.float().to(self.device)))
+            self.y_train = torch.cat((self.y_train, y_train.to(self.device)))
     
     def predict(self, X_test):
         # print(F"PARAMS: k={self.k}, l1={self.l1}, l2={self.l2}, metric={self.metric}, weight={self.weight}, tuckeys={self.apply_tukeys_transformation}, lambda={self.lambda_hyperparameter}")
@@ -243,3 +261,12 @@ class KNN:
         self.X_train = torch.cat(means).to(self.device)
         self.y_train = torch.tensor(labels).to(self.device)
 
+    def _kmeans(self, X_train):
+        kmeans = KMeans(n_clusters=self.kmeans)
+        kmeans.fit(X_train.cpu().numpy())
+
+        cluster_centers = kmeans.cluster_centers_
+
+        cluster_centers_tensor = torch.tensor(cluster_centers, dtype=X_train.dtype)
+
+        return cluster_centers_tensor
