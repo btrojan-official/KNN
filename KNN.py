@@ -31,6 +31,7 @@ class KNN:
         self.apply_tukeys_transformation = False
 
         self.kmeans = 0
+        self.kmeans_seed = 1
 
         self.covMatrices = None
 
@@ -262,7 +263,7 @@ class KNN:
         self.y_train = torch.tensor(labels).to(self.device)
 
     def _kmeans(self, X_train):
-        kmeans = KMeans(n_clusters=self.kmeans)
+        kmeans = KMeans(n_clusters=self.kmeans, random_state=self.kmeans_seed)
         kmeans.fit(X_train.cpu().numpy())
 
         cluster_centers = kmeans.cluster_centers_

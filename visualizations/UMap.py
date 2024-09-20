@@ -2,9 +2,15 @@ import numpy as np
 import umap
 import matplotlib.pyplot as plt
 
-from load_data import load_vit_data
+import os
+import sys
 
-_, _, data, labels, _ = load_vit_data(state=5)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(current_dir))
+
+from load_data import load_resnet_data
+
+_, _, data, labels, _ = load_resnet_data(state=5)
 
 classes =list(np.unique(labels))
 print(classes)
