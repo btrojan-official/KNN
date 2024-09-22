@@ -63,6 +63,6 @@ def load_resnet_data(state=0):
         task_id = f["info"].attrs["task"]
         accuracy = f["info"].attrs["accuracy"]
 
-        print(f"Accuracy: {accuracy}, Task ID: {task_id}")
+        # print(f"Accuracy: {accuracy}, Task ID: {task_id}")
 
         return torch.tensor(X_train), torch.tensor(y_train), torch.tensor(X_test), torch.tensor(y_test), torch.tensor(covariances)

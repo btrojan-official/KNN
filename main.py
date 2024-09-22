@@ -4,7 +4,7 @@ start_time = time.time()
 import torch
 import h5py
 
-from KNN import KNN 
+from KNN import KNN # knn_copy ma wyłączoną normalizację
 from load_data import load_mnist_data
 from load_data import load_resnet_data
 from load_data import load_vit_data
@@ -14,19 +14,19 @@ import torch.nn as nn
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 print(f"DEVICE = {device}")
 
-knn = KNN(k=1, metric="mahalanobis", weight="uniform", device=device)
+knn = KNN(k=5, metric="mahalanobis", weight="uniform", device=device)
 knn.apply_tukeys_transformation = True
-knn.lambda_hyperparameter = 1
-knn.kmeans = 75
-knn.l1 = 5
-knn.l2 = 0
+knn.lambda_hyperparameter = 0.5
+# knn.kmeans = 75
+knn.l1 = 1
+knn.l2 = 1
 
-for i in range(10):
+for i in range(6):
 
-    X_train, y_train, X_test, y_test, covariances = load_vit_data(state=i)
+    X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=i)
 
     knn.fit(X_train, y_train)
-    # knn.replace_examples_with_mean()
+    knn.replace_examples_with_mean()
 
     # if len(covariances.size()) > 2:
     #     covariances = covariances.reshape(-1, covariances.shape[1])
@@ -36,7 +36,6 @@ for i in range(10):
 
     accuracy = torch.sum((y_test.flatten().to(device)==predictions).int()).float() / X_test.shape[0] * 100
     print(f"Accuracy: {accuracy.item()} MY")
-
 
 # X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=9)
 
