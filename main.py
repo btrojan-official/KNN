@@ -14,19 +14,20 @@ import torch.nn as nn
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 print(f"DEVICE = {device}")
 
-knn = KNN(k=5, metric="mahalanobis", weight="uniform", device=device)
+knn = KNN(k=1, metric="mahalanobis", weight="distance", device=device)
 knn.apply_tukeys_transformation = True
-knn.lambda_hyperparameter = 0.5
-# knn.kmeans = 75
-knn.l1 = 1
-knn.l2 = 1
+knn.lambda_hyperparameter = 1
+knn.kmeans = 10
+knn.l1 = 5
+knn.l2 = 0
+knn.kmeans_seed = 41
 
-for i in range(6):
+for i in range(10):
 
-    X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=i)
+    X_train, y_train, X_test, y_test, covariances = load_vit_data(state=i)
 
     knn.fit(X_train, y_train)
-    knn.replace_examples_with_mean()
+    # knn.replace_examples_with_mean()
 
     # if len(covariances.size()) > 2:
     #     covariances = covariances.reshape(-1, covariances.shape[1])
