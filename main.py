@@ -16,15 +16,15 @@ print(f"DEVICE = {device}")
 
 knn = KNN(k=1, metric="mahalanobis", weight="distance", device=device)
 knn.apply_tukeys_transformation = True
-knn.lambda_hyperparameter = 1
-knn.kmeans = 10
-knn.l1 = 5
-knn.l2 = 0
-knn.kmeans_seed = 41
+knn.lambda_hyperparameter = 0.5
+knn.kmeans = 1
+knn.l1 = 1
+knn.l2 = 1
+# knn.kmeans_seed = 41
 
-for i in range(10):
+for i in range(6):
 
-    X_train, y_train, X_test, y_test, covariances = load_vit_data(state=i)
+    X_train, y_train, X_test, y_test, covariances = load_resnet_data(state=i)
 
     knn.fit(X_train, y_train)
     # knn.replace_examples_with_mean()
