@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from sklearn.cluster import KMeans
 
 class KNN:
@@ -24,7 +25,7 @@ class KNN:
         self.y_train = None
 
         self.l1 = 1
-        self.l2 = 0
+        self.l2 = 1
 
         self.lambda_hyperparameter = 0.5
 
@@ -43,45 +44,48 @@ class KNN:
             self.y_train = self.y_train.to(device)
 
     def fit(self, X_train, y_train):
-        
-        if self.apply_tukeys_transformation:
-            X_train = self._tukeys_transformation(X_train)
+
+        EPSILON = 1e-8
+        X_train = (X_train.T / (torch.linalg.norm(X_train.T, axis=0) + EPSILON)).T
 
         if self.X_train is None or self.y_train is None:
             if self.metric == "mahalanobis":
-                self.covMatrices = self._calc_covariances(X_train, y_train)
+                if self.apply_tukeys_transformation:
+                    self.covMatrices = self._calc_covariances(self._tukeys_transformation(X_train), y_train).float().to(self.device)
+                else:
+                    self.covMatrices = self._calc_covariances(X_train, y_train).float().to(self.device)
         else:
             if self.metric == "mahalanobis":
-                self.covMatrices = torch.cat((self.covMatrices, self._calc_covariances(X_train, y_train))).to(self.device)
+                if self.apply_tukeys_transformation:
+                    self.covMatrices = torch.cat((self.covMatrices, self._calc_covariances(self._tukeys_transformation(X_train), y_train))).float().to(self.device)
+                else:
+                    self.covMatrices = torch.cat((self.covMatrices, self._calc_covariances(X_train, y_train))).float().to(self.device)
         
         if self.kmeans > 0:
             uniqes = torch.unique(y_train, sorted=True).to(self.device)
 
             for i in uniqes:
-                single_class_examples = self._get_single_class_examples(X_train.float().to(self.device), y_train.float().to(self.device), i)
-                if i == torch.min(uniqes): 
+                single_class_examples = self._get_single_class_examples(X_train.to(self.device), y_train.to(self.device), i)
+                if i == uniqes[0]: 
                     new_X_train = self._kmeans(single_class_examples).to(self.device)
                     new_y_train = torch.full((self.kmeans,), i.item()).to(self.device)
                 else:
                     new_X_train = torch.cat((new_X_train, self._kmeans(single_class_examples).to(self.device)))
                     new_y_train = torch.cat((new_y_train, torch.full((self.kmeans,), i.item()).to(self.device)))
 
-            X_train = new_X_train
+            X_train = new_X_train.float()
             y_train = new_y_train
 
         if self.X_train is None or self.y_train is None:
-            self.X_train = X_train.float().to(self.device)
+            self.X_train = X_train.to(self.device)
             self.y_train = y_train.to(self.device)
         else:
-            self.X_train = torch.cat((self.X_train, X_train.float().to(self.device)))
+            self.X_train = torch.cat((self.X_train, X_train.to(self.device)))
             self.y_train = torch.cat((self.y_train, y_train.to(self.device)))
     
     def predict(self, X_test):
-        
-        X_test = X_test.float().to(self.device)
 
-        if self.apply_tukeys_transformation:
-            X_test = self._tukeys_transformation(X_test)
+        X_test = X_test.to(self.device)
 
         return self._predict(X_test)
     
@@ -153,25 +157,32 @@ class KNN:
         return dists
 
     def _mahalanobis(self, X_test, batch_size=16):
+        
         X_test = X_test.to(self.device)
+
+        if self.apply_tukeys_transformation:
+            X_test = self._tukeys_transformation(X_test)
+            curr_X_train = self._tukeys_transformation(self.X_train)
+        else:
+            curr_X_train = self.X_train
 
         f_num = self.covMatrices.shape[1]
         num_classes = self.covMatrices.shape[0] // f_num
 
         cov_inv_list = []
         for i in range(num_classes):  
-            cov_inv = torch.inverse(self.covMatrices[i * f_num:(i + 1) * f_num, :]).to(self.device)
+            cov_inv = torch.linalg.pinv(self.covMatrices[i * f_num:(i + 1) * f_num, :]).to(self.device)
             cov_inv_list.append(cov_inv)
         cov_inv_stack = torch.stack(cov_inv_list)
 
         mahalanobis_distances = []
 
-        for start_idx in range(0, self.X_train.shape[0], batch_size):
-            end_idx = min(start_idx + batch_size, self.X_train.shape[0])
-            X_train_batch = self.X_train[start_idx:end_idx].to(self.device)
+        for start_idx in range(0, curr_X_train.shape[0], batch_size):
+            end_idx = min(start_idx + batch_size, curr_X_train.shape[0])
+            X_train_batch = curr_X_train[start_idx:end_idx].to(self.device)
             cov_inv_per_batch = cov_inv_stack[self.y_train[start_idx:end_idx]]
             X_test_exp = X_test.unsqueeze(0).repeat(end_idx - start_idx, 1, 1)
-            diff = (X_test_exp - X_train_batch.unsqueeze(1)) # (torch.nn.functional.normalize(X_train_batch.unsqueeze(1), p=2, dim=-1) - torch.nn.functional.normalize(X_test_exp, p=2, dim=-1)).to(self.device)
+            diff = (F.normalize(X_test_exp, p=2, dim=-1) - F.normalize(X_train_batch.unsqueeze(1), p=2, dim=-1)).float()
             batch_distances = torch.sqrt(torch.sum(diff @ cov_inv_per_batch * diff, dim=2))
             mahalanobis_distances.append(batch_distances)
 
@@ -179,7 +190,7 @@ class KNN:
 
 
     def _calc_covariances(self, X_train, y_train):
-        X_train = X_train.float().to(self.device)
+        X_train = X_train.to(self.device)
         y_train = y_train.to(self.device)
 
         uniqes = torch.unique(y_train, sorted=True).to(self.device)
@@ -187,7 +198,7 @@ class KNN:
         for i in uniqes:
             cov = self._calc_single_covariance(X_train, y_train, i)
 
-            cov = self.matrix_shrinkage(cov, self.l1, self.l2)#self.matrix_shrinkage(, 1, 0)
+            cov = self.matrix_shrinkage(self.matrix_shrinkage(cov, self.l1, self.l2), self.l1, self.l2)
             cov = self.normalize_covariance_matrix(cov)
 
             if i == uniqes[0]:
@@ -226,7 +237,7 @@ class KNN:
 
         shrinkaged_cov_matrix = cov_matrix + gamma1 * V1 * I + gamma2 * V2 * (1 - I)
 
-        return shrinkaged_cov_matrix.to(self.device)
+        return shrinkaged_cov_matrix.clone().detach().to(self.device)
     
     def normalize_covariance_matrix(self, cov_matrix):
 
@@ -240,12 +251,12 @@ class KNN:
     
     def _tukeys_transformation(self, x: torch.Tensor) -> torch.Tensor:
         if self.lambda_hyperparameter != 0:
-            return x**self.lambda_hyperparameter
+            return torch.pow(x,self.lambda_hyperparameter)
         else:
             return torch.log(x)
     
     def replace_examples_with_mean(self):
-
+        
         self.k = 1
 
         means = []
@@ -271,3 +282,11 @@ class KNN:
         cluster_centers_tensor = torch.tensor(cluster_centers, dtype=X_train.dtype)
 
         return cluster_centers_tensor
+    
+    def cov_mse(self, second_cov):
+        mse = torch.nn.MSELoss()
+        return mse(self.covMatrices, second_cov)
+    
+    def prototypes_mse(self, second_prototypes):
+        mse = torch.nn.MSELoss()
+        return mse(self.X_train[51:], second_prototypes)
