@@ -9,9 +9,6 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 print(f"DEVICE = {device}")
 
 
-
-
-
 knn = KNN(k=1, metric="mahalanobis", weight="uniform", device=device)
 knn.apply_tukeys_transformation = True
 knn.lambda_hyperparameter = 0.5

@@ -202,7 +202,7 @@ class KNN:
             cov = self.normalize_covariance_matrix(cov)
 
             if i == uniqes[0]:
-                covariances = cov
+                covariances = cov.clone().detach()
             else:
                 covariances = torch.cat((covariances, cov))
         
