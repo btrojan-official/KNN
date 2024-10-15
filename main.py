@@ -37,5 +37,5 @@ for i in range(6):
     print(f"Accuracy: {accuracy(y_test.flatten().to(device), predictions)} MY")
 
     print(f"\nCov MSE: {knn.cov_mse(covariances)}")
-    if i!=0:
-        print(f"Prototypes MSE: {knn.prototypes_mse(prototypes[51:])}\n")
+
+    print(f"Prototypes MSE: {knn.prototypes_mse(prototypes)}\n")

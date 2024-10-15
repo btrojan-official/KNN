@@ -289,4 +289,4 @@ class KNN:
     
     def prototypes_mse(self, second_prototypes):
         mse = torch.nn.MSELoss()
-        return mse(self.X_train[51:], second_prototypes)
+        return mse(self.X_train, second_prototypes)
