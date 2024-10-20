@@ -45,9 +45,6 @@ class KNN:
 
     def fit(self, X_train, y_train):
 
-        EPSILON = 1e-8
-        X_train = (X_train.T / (torch.linalg.norm(X_train.T, axis=0) + EPSILON)).T
-
         if self.X_train is None or self.y_train is None:
             if self.metric == "mahalanobis":
                 if self.apply_tukeys_transformation:
@@ -157,14 +154,16 @@ class KNN:
         return dists
 
     def _mahalanobis(self, X_test, batch_size=16):
-        
+        EPSILON = 1e-8
+
         X_test = X_test.to(self.device)
+        X_test = (X_test.T / (torch.linalg.norm(X_test.T, axis=0) + EPSILON)).T
 
         if self.apply_tukeys_transformation:
             X_test = self._tukeys_transformation(X_test)
-            curr_X_train = self._tukeys_transformation(self.X_train)
+            curr_X_train = self._tukeys_transformation(self.X_train.clone().detach())
         else:
-            curr_X_train = self.X_train
+            curr_X_train = self.X_train.clone().detach()
 
         f_num = self.covMatrices.shape[1]
         num_classes = self.covMatrices.shape[0] // f_num
@@ -204,7 +203,7 @@ class KNN:
             if i == uniqes[0]:
                 covariances = cov.clone().detach()
             else:
-                covariances = torch.cat((covariances, cov))
+                covariances = torch.cat((covariances, cov.clone().detach()))
         
         return covariances
 
@@ -227,15 +226,14 @@ class KNN:
     def matrix_shrinkage(self, cov_matrix, gamma1=1, gamma2=1):
 
         assert cov_matrix.shape[0] == cov_matrix.shape[1], "Covariance matrix must be square"
-        
-        I = torch.eye(cov_matrix.shape[0], device=cov_matrix.device)
-        
-        V1 = torch.mean(torch.diag(cov_matrix)).to(self.device)
-        
-        off_diagonal_elements = (cov_matrix * (1 - I)).to(self.device)
-        V2 = (torch.sum(off_diagonal_elements) / (cov_matrix.shape[0] * (cov_matrix.shape[0] - 1))).to(self.device)
 
-        shrinkaged_cov_matrix = cov_matrix + gamma1 * V1 * I + gamma2 * V2 * (1 - I)
+        diag_mean = torch.mean(torch.diag(cov_matrix))
+        off_diag = cov_matrix.clone()
+        off_diag.fill_diagonal_(0.0)
+        I = torch.eye(cov_matrix.shape[0], device=cov_matrix.device)
+        mask = off_diag != 0.0 # I == 0.0
+        off_diag_mean = (off_diag*mask).sum() / mask.sum()
+        shrinkaged_cov_matrix = cov_matrix + (gamma1 * diag_mean * I) + (gamma2 * off_diag_mean * (1 - I))
 
         return shrinkaged_cov_matrix.clone().detach().to(self.device)
     
