@@ -231,7 +231,7 @@ class KNN:
         off_diag = cov_matrix.clone()
         off_diag.fill_diagonal_(0.0)
         I = torch.eye(cov_matrix.shape[0], device=cov_matrix.device)
-        mask = off_diag != 0.0 # I == 0.0
+        mask = I == 0.0 # off_diag != 0.0 # 
         off_diag_mean = (off_diag*mask).sum() / mask.sum()
         shrinkaged_cov_matrix = cov_matrix + (gamma1 * diag_mean * I) + (gamma2 * off_diag_mean * (1 - I))
 
